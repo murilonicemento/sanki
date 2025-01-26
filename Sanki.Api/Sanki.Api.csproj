@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+      <UserSecretsId>10490fd0-7bdf-412c-bd9a-b3b66bf9a1a0</UserSecretsId>
+  </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.3.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Sanki.Persistence\Sanki.Persistence.csproj" />
+      <ProjectReference Include="..\Sanki.Services.Contracts\Sanki.Services.Contracts.csproj" />
+      <ProjectReference Include="..\Sanki.Services\Sanki.Services.csproj" />
+    </ItemGroup>
+
+</Project>
