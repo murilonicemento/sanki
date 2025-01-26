@@ -18,6 +18,6 @@ public class RegisterUserDTO
     public string Email { get; set; }
 
     [Required(ErrorMessage = "First name can't be blank.")]
-    [MaxLength(255, ErrorMessage = "First name max length is 50 characters.")]
+    [MaxLength(255, ErrorMessage = "First name max length is 255 characters.")]
     public string Password { get; set; }
 }
