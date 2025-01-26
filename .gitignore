@@ -1,0 +1,11 @@
+bin/
+obj/
+
+.idea/
+.vscode/
+
+packages/
+
+appsettings.json
+
+*.log
