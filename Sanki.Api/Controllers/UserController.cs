@@ -1,9 +1,5 @@
-using System.Security.Cryptography;
-using System.Text;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.AspNetCore.Mvc;
-using Sanki.Entities;
-using Sanki.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Sanki.Services.Contracts;
 using Sanki.Services.Contracts.DTO;
 
@@ -13,17 +9,15 @@ namespace Sanki.Api.Controllers;
 [Route("api/[controller]")]
 public class UserController : ControllerBase
 {
-    private readonly SankiContext _sankiContext;
-    private readonly IJwtService _jwtService;
+    private readonly IUserService _userService;
 
-    public UserController(SankiContext sankiContext, IJwtService jwtService)
+    public UserController(IUserService userService)
     {
-        _sankiContext = sankiContext;
-        _jwtService = jwtService;
+        _userService = userService;
     }
 
     [HttpPost]
-    public async Task<ActionResult> Register(RegisterUserDTO registerUserDto)
+    public async Task<ActionResult<AuthResponseDTO>> Register(RegisterUserDTO registerUserDto)
     {
         if (!ModelState.IsValid)
         {
@@ -31,58 +25,22 @@ public class UserController : ControllerBase
                 .ToList();
             var errorsString = string.Join(" | ", errorsList);
 
-            return BadRequest(errorsString);
+            return Problem(errorsString, statusCode: 400);
         }
 
-        var authResponseDto = _jwtService.GenerateJwt(new User
+        try
         {
-            FirstName = registerUserDto.FirstName,
-            LastName = registerUserDto.LastName,
-            Email = registerUserDto.Email,
-        });
+            var authResponseDto = await _userService.Register(registerUserDto);
 
-        if (authResponseDto.Token is null
-            || authResponseDto.RefreshToken is null
-            || authResponseDto.RefreshTokenExpiration is null)
-        {
-            return Problem("An error occured. Contact the system admin.", statusCode: 500);
+            return Ok(authResponseDto);
         }
-
-        var salt = new byte[128 / 8];
-        var userSalt = GenerateSalt(salt);
-
-        var user = new User
+        catch (InvalidOperationException exception)
         {
-            FirstName = registerUserDto.FirstName,
-            LastName = registerUserDto.LastName,
-            Email = registerUserDto.Email,
-            Password = EncryptPassword(registerUserDto.Password, userSalt),
-            Salt = userSalt,
-            RefreshToken = authResponseDto.RefreshToken,
-            RefreshTokenExpiration = authResponseDto.RefreshTokenExpiration.Value,
-        };
-
-        await _sankiContext.Users.AddAsync(user);
-        await _sankiContext.SaveChangesAsync();
-
-        return Ok(authResponseDto);
-    }
-
-    private byte[] GenerateSalt(byte[] salt)
-    {
-        var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(salt);
-
-        return salt;
-    }
-
-    private string EncryptPassword(string password, byte[] salt)
-    {
-        return Convert.ToBase64String(KeyDerivation.Pbkdf2(
-            password: password,
-            salt: salt,
-            prf: KeyDerivationPrf.HMACSHA1,
-            iterationCount: 10000,
-            numBytesRequested: 256 / 8));
+            return Problem(exception.Message, statusCode: 400);
+        }
+        catch (DbUpdateException)
+        {
+            return Problem("An error occurred. Contact the system admin.", statusCode: 500);
+        }
     }
 }
