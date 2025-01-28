@@ -10,7 +10,7 @@ public class AuthResponseDTO
 
     public string? Token { get; set; }
 
-    public string? RefreshToken { get; set; }
+    public string RefreshToken { get; set; }
 
-    public DateTime? RefreshTokenExpiration { get; set; }
+    public DateTime RefreshTokenExpiration { get; set; }
 }
