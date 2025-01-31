@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Sanki.Api.Validations.Interfaces;
 using Sanki.Services.Contracts;
 using Sanki.Services.Contracts.DTO;
 
@@ -10,22 +11,20 @@ namespace Sanki.Api.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IModelStateValidator _modelStateValidator;
 
-    public UserController(IUserService userService)
+    public UserController(IUserService userService, IModelStateValidator modelStateValidator)
     {
         _userService = userService;
+        _modelStateValidator = modelStateValidator;
     }
 
     [HttpPost]
     public async Task<ActionResult<RegisterUserResponseDTO>> Register(RegisterUserRequestDTO registerUserRequestDto)
     {
-        if (!ModelState.IsValid)
+        if (!_modelStateValidator.ValidateModelState(ModelState, out var errorMessages))
         {
-            var errorsList = ModelState.Values.SelectMany(value => value.Errors).Select(error => error.ErrorMessage)
-                .ToList();
-            var errorsString = string.Join(" | ", errorsList);
-
-            return Problem(errorsString, statusCode: 400);
+            return Problem(errorMessages, statusCode: 400);
         }
 
         try
