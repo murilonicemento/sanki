@@ -21,7 +21,7 @@ public class UserService : IUserService
 
     public async Task<RegisterUserResponseDTO> RegisterAsync(RegisterUserRequestDTO registerUserRequestDto)
     {
-        var isUserAlreadyRegister = await IsUserAlreadyRegister(registerUserRequestDto);
+        var isUserAlreadyRegister = await IsUserAlreadyRegisterAsync(registerUserRequestDto);
 
         if (isUserAlreadyRegister) throw new InvalidOperationException("User already exist.");
 
@@ -48,7 +48,7 @@ public class UserService : IUserService
         return authResponseDto;
     }
 
-    private async Task<bool> IsUserAlreadyRegister(RegisterUserRequestDTO registerUserRequestDto)
+    private async Task<bool> IsUserAlreadyRegisterAsync(RegisterUserRequestDTO registerUserRequestDto)
     {
         var user = await _sankiContext.Users.FirstOrDefaultAsync(user => user.Email == registerUserRequestDto.Email);
 
