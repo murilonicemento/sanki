@@ -57,7 +57,7 @@ public class JwtService : IJwtService
         };
     }
 
-    private string GenerateRefreshToken()
+    private static string GenerateRefreshToken()
     {
         var bytes = new byte[64];
         var randomNumberGenerator = RandomNumberGenerator.Create();
