@@ -36,7 +36,8 @@ public class UserServiceTest
             .Build();
         var jwtService = new JwtService(configuration);
 
-        _userService = new UserService(_sankiContext, jwtService);
+        var passwordService = new PasswordService();
+        _userService = new UserService(_sankiContext, jwtService, passwordService);
     }
 
     #region Register
