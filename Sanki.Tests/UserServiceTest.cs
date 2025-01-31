@@ -1,11 +1,8 @@
 using AutoFixture;
-using EntityFrameworkCoreMock;
 using Microsoft.EntityFrameworkCore;
-using Moq;
-using Sanki.Entities;
+using Microsoft.Extensions.Configuration;
 using Sanki.Persistence;
 using Sanki.Services;
-using Sanki.Services.Contracts;
 using Sanki.Services.Contracts.DTO;
 
 namespace Sanki.Tests;
@@ -13,23 +10,39 @@ namespace Sanki.Tests;
 public class UserServiceTest
 {
     private readonly Fixture _fixture;
-    private readonly Mock<IJwtService> _jwtServiceMock;
     private readonly UserService _userService;
+    private readonly SankiContext _sankiContext;
 
     public UserServiceTest()
     {
         _fixture = new Fixture();
 
-        var sankiContextMock = new DbContextMock<SankiContext>(new DbContextOptionsBuilder<SankiContext>().Options);
+        var options = new DbContextOptionsBuilder<SankiContext>()
+            .UseInMemoryDatabase(databaseName: "SankiTestDatabase")
+            .Options;
+        _sankiContext = new SankiContext(options);
 
-        sankiContextMock.CreateDbSetMock(context => context.Users, new List<User>());
+        _sankiContext.Database.EnsureCreated();
 
-        _jwtServiceMock = new Mock<IJwtService>();
-        _userService = new UserService(sankiContextMock.Object, _jwtServiceMock.Object);
+        var inMemorySettings = new Dictionary<string, string>
+        {
+            { "Jwt:Key", "12345678901234567890123456789012" },
+            { "Jwt:EXPIRATION_MINUTES", "720" },
+            { "Jwt:Issuer", "test-issuer" },
+            { "Jwt:Audience", "test-audience" }
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(inMemorySettings)
+            .Build();
+        var jwtService = new JwtService(configuration);
+
+        _userService = new UserService(_sankiContext, jwtService);
     }
 
+    #region Register
+
     [Fact]
-    public async Task Register_PersonAlreadyExist_ToBeInvalidOperationException()
+    public async Task Register_PersonAlreadyExist_ShouldBeInvalidOperationException()
     {
         var registerUserDto = _fixture.Build<RegisterUserDTO>().Create();
 
@@ -40,4 +53,33 @@ public class UserServiceTest
             await _userService.Register(registerUserDto);
         });
     }
+
+    [Fact]
+    public async Task Register_ShouldReturnValidAuthResponse()
+    {
+        var registerUserDto = _fixture.Build<RegisterUserDTO>().Create();
+        var authResponseDtoExpected = new AuthResponseDTO
+        {
+            FirstName = registerUserDto.FirstName,
+            LastName = registerUserDto.LastName,
+            Email = registerUserDto.Email
+        };
+        var authResponseDtoResult = await _userService.Register(registerUserDto);
+
+        Assert.Equal(authResponseDtoExpected, authResponseDtoResult);
+    }
+
+    [Fact]
+    public async Task Register_ShouldSaveUserInDatabase()
+    {
+        var registerUserDto = _fixture.Build<RegisterUserDTO>().Create();
+        var authResponseDtoResult = await _userService.Register(registerUserDto);
+        var authResponseDtoExpected =
+            await _sankiContext.Users.FirstOrDefaultAsync(user => user.Email == authResponseDtoResult.Email);
+
+        Assert.NotNull(authResponseDtoResult);
+        Assert.Equal(authResponseDtoExpected, authResponseDtoExpected);
+    }
+
+    #endregion
 }
