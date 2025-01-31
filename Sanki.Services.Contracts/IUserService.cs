@@ -4,5 +4,5 @@ namespace Sanki.Services.Contracts;
 
 public interface IUserService
 {
-    public Task<AuthResponseDTO> Register(RegisterUserDTO registerUserDto);
+    public Task<RegisterUserResponseDTO> RegisterAsync(RegisterUserRequestDTO registerUserRequestDto);
 }

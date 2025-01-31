@@ -1,6 +1,6 @@
 namespace Sanki.Services.Contracts.DTO;
 
-public class AuthResponseDTO
+public class RegisterUserResponseDTO
 {
     public string FirstName { get; set; }
 
@@ -17,12 +17,12 @@ public class AuthResponseDTO
     public override bool Equals(object? obj)
     {
         if (obj is null) return false;
-        if (obj.GetType() != typeof(AuthResponseDTO)) return false;
+        if (obj.GetType() != typeof(RegisterUserResponseDTO)) return false;
 
-        AuthResponseDTO authResponseDto = (AuthResponseDTO)obj;
+        RegisterUserResponseDTO registerUserResponseDto = (RegisterUserResponseDTO)obj;
 
-        return FirstName == authResponseDto.FirstName && LastName == authResponseDto.LastName &&
-               Email == authResponseDto.Email;
+        return FirstName == registerUserResponseDto.FirstName && LastName == registerUserResponseDto.LastName &&
+               Email == registerUserResponseDto.Email;
     }
 
     public override int GetHashCode()

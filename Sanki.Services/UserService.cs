@@ -19,17 +19,17 @@ public class UserService : IUserService
         _jwtService = jwtService;
     }
 
-    public async Task<AuthResponseDTO> Register(RegisterUserDTO registerUserDto)
+    public async Task<RegisterUserResponseDTO> RegisterAsync(RegisterUserRequestDTO registerUserRequestDto)
     {
-        var isUserAlreadyRegister = await IsUserAlreadyRegister(registerUserDto);
+        var isUserAlreadyRegister = await IsUserAlreadyRegister(registerUserRequestDto);
 
         if (isUserAlreadyRegister) throw new InvalidOperationException("User already exist.");
 
         var user = new User
         {
-            FirstName = registerUserDto.FirstName,
-            LastName = registerUserDto.LastName,
-            Email = registerUserDto.Email,
+            FirstName = registerUserRequestDto.FirstName,
+            LastName = registerUserRequestDto.LastName,
+            Email = registerUserRequestDto.Email,
         };
 
         var authResponseDto = _jwtService.GenerateJwt(user);
@@ -37,7 +37,7 @@ public class UserService : IUserService
         var salt = new byte[128 / 8];
         var userSalt = GenerateSalt(salt);
 
-        user.Password = EncryptPassword(registerUserDto.Password, userSalt);
+        user.Password = EncryptPassword(registerUserRequestDto.Password, userSalt);
         user.Salt = userSalt;
         user.RefreshToken = authResponseDto.RefreshToken;
         user.RefreshTokenExpiration = authResponseDto.RefreshTokenExpiration;
@@ -48,9 +48,9 @@ public class UserService : IUserService
         return authResponseDto;
     }
 
-    private async Task<bool> IsUserAlreadyRegister(RegisterUserDTO registerUserDto)
+    private async Task<bool> IsUserAlreadyRegister(RegisterUserRequestDTO registerUserRequestDto)
     {
-        var user = await _sankiContext.Users.FirstOrDefaultAsync(user => user.Email == registerUserDto.Email);
+        var user = await _sankiContext.Users.FirstOrDefaultAsync(user => user.Email == registerUserRequestDto.Email);
 
         return user is not null;
     }

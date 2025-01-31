@@ -17,7 +17,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<AuthResponseDTO>> Register(RegisterUserDTO registerUserDto)
+    public async Task<ActionResult<RegisterUserResponseDTO>> Register(RegisterUserRequestDTO registerUserRequestDto)
     {
         if (!ModelState.IsValid)
         {
@@ -30,7 +30,7 @@ public class UserController : ControllerBase
 
         try
         {
-            var authResponseDto = await _userService.Register(registerUserDto);
+            var authResponseDto = await _userService.RegisterAsync(registerUserRequestDto);
 
             return Ok(authResponseDto);
         }

@@ -44,27 +44,27 @@ public class UserServiceTest
     [Fact]
     public async Task Register_PersonAlreadyExist_ShouldBeInvalidOperationException()
     {
-        var registerUserDto = _fixture.Build<RegisterUserDTO>().Create();
+        var registerUserDto = _fixture.Build<RegisterUserRequestDTO>().Create();
 
-        await _userService.Register(registerUserDto);
+        await _userService.RegisterAsync(registerUserDto);
 
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
-            await _userService.Register(registerUserDto);
+            await _userService.RegisterAsync(registerUserDto);
         });
     }
 
     [Fact]
     public async Task Register_ShouldReturnValidAuthResponse()
     {
-        var registerUserDto = _fixture.Build<RegisterUserDTO>().Create();
-        var authResponseDtoExpected = new AuthResponseDTO
+        var registerUserDto = _fixture.Build<RegisterUserRequestDTO>().Create();
+        var authResponseDtoExpected = new RegisterUserResponseDTO
         {
             FirstName = registerUserDto.FirstName,
             LastName = registerUserDto.LastName,
             Email = registerUserDto.Email
         };
-        var authResponseDtoResult = await _userService.Register(registerUserDto);
+        var authResponseDtoResult = await _userService.RegisterAsync(registerUserDto);
 
         Assert.Equal(authResponseDtoExpected, authResponseDtoResult);
     }
@@ -72,8 +72,8 @@ public class UserServiceTest
     [Fact]
     public async Task Register_ShouldSaveUserInDatabase()
     {
-        var registerUserDto = _fixture.Build<RegisterUserDTO>().Create();
-        var authResponseDtoResult = await _userService.Register(registerUserDto);
+        var registerUserDto = _fixture.Build<RegisterUserRequestDTO>().Create();
+        var authResponseDtoResult = await _userService.RegisterAsync(registerUserDto);
         var authResponseDtoExpected =
             await _sankiContext.Users.FirstOrDefaultAsync(user => user.Email == authResponseDtoResult.Email);
 

@@ -3,7 +3,7 @@ using Sanki.Entities;
 
 namespace Sanki.Services.Contracts.DTO;
 
-public class RegisterUserDTO
+public class RegisterUserRequestDTO
 {
     [Required(ErrorMessage = "First name can't be blank.")]
     [MaxLength(50, ErrorMessage = "First name max length is 50 characters.")]
