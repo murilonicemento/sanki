@@ -1,9 +1,9 @@
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Sanki.Entities;
+using Sanki.Api.Validations;
+using Sanki.Api.Validations.Interfaces;
 using Sanki.Persistence;
 using Sanki.Services;
 using Sanki.Services.Contracts;
@@ -23,6 +23,8 @@ builder.Services.AddDbContext<SankiContext>(options =>
 // Dependencys/Services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IModelStateValidator, ModelStateValidator>();
+builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // JWT
@@ -61,6 +63,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
