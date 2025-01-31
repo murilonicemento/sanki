@@ -20,7 +20,7 @@ public class JwtService : IJwtService
         _configuration = configuration;
     }
 
-    public AuthResponseDTO GenerateJwt(User user)
+    public RegisterUserResponseDTO GenerateJwt(User user)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? string.Empty));
         var expiration =
@@ -46,7 +46,7 @@ public class JwtService : IJwtService
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.WriteToken(tokenGenerator);
 
-        return new AuthResponseDTO
+        return new RegisterUserResponseDTO
         {
             FirstName = user.FirstName,
             LastName = user.LastName,
