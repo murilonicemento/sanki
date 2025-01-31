@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.EntityFrameworkCore;
 using Sanki.Entities;
 using Sanki.Persistence;
@@ -12,11 +10,13 @@ public class UserService : IUserService
 {
     private readonly SankiContext _sankiContext;
     private readonly IJwtService _jwtService;
+    private readonly IPasswordService _passwordService;
 
-    public UserService(SankiContext sankiContext, IJwtService jwtService)
+    public UserService(SankiContext sankiContext, IJwtService jwtService, IPasswordService passwordService)
     {
         _sankiContext = sankiContext;
         _jwtService = jwtService;
+        _passwordService = passwordService;
     }
 
     public async Task<RegisterUserResponseDTO> RegisterAsync(RegisterUserRequestDTO registerUserRequestDto)
@@ -35,9 +35,9 @@ public class UserService : IUserService
         var authResponseDto = _jwtService.GenerateJwt(user);
 
         var salt = new byte[128 / 8];
-        var userSalt = GenerateSalt(salt);
+        var userSalt = _passwordService.GenerateSalt(salt);
 
-        user.Password = EncryptPassword(registerUserRequestDto.Password, userSalt);
+        user.Password = _passwordService.EncryptPassword(registerUserRequestDto.Password, userSalt);
         user.Salt = userSalt;
         user.RefreshToken = authResponseDto.RefreshToken;
         user.RefreshTokenExpiration = authResponseDto.RefreshTokenExpiration;
@@ -53,24 +53,5 @@ public class UserService : IUserService
         var user = await _sankiContext.Users.FirstOrDefaultAsync(user => user.Email == registerUserRequestDto.Email);
 
         return user is not null;
-    }
-
-    private byte[] GenerateSalt(byte[] salt)
-    {
-        var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(salt);
-
-        return salt;
-    }
-
-    private string EncryptPassword(string password, byte[] salt)
-    {
-        return Convert.ToBase64String(KeyDerivation.Pbkdf2(
-            password: password,
-            salt: salt,
-            prf: KeyDerivationPrf.HMACSHA1,
-            iterationCount: 10000,
-            numBytesRequested: 256 / 8)
-        );
     }
 }
