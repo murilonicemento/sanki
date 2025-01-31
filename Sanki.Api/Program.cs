@@ -23,6 +23,7 @@ builder.Services.AddDbContext<SankiContext>(options =>
 // Dependencys/Services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // JWT
 builder.Services
