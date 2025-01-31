@@ -36,7 +36,7 @@ public class UserController : ControllerBase
         }
         catch (InvalidOperationException exception)
         {
-            return Problem(exception.Message, statusCode: 400);
+            return Problem(exception.Message, statusCode: 409);
         }
         catch (DbUpdateException)
         {
