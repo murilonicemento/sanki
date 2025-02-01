@@ -24,20 +24,8 @@ public class UserServiceTest
 
         _sankiContext.Database.EnsureCreated();
 
-        var inMemorySettings = new Dictionary<string, string>
-        {
-            { "Jwt:Key", "12345678901234567890123456789012" },
-            { "Jwt:EXPIRATION_MINUTES", "720" },
-            { "Jwt:Issuer", "test-issuer" },
-            { "Jwt:Audience", "test-audience" }
-        };
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(inMemorySettings)
-            .Build();
-        var jwtService = new JwtService(configuration);
-
         var passwordService = new PasswordService();
-        _userService = new UserService(_sankiContext, jwtService, passwordService);
+        _userService = new UserService(_sankiContext, passwordService);
     }
 
     #region Register
