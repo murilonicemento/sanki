@@ -9,13 +9,11 @@ namespace Sanki.Services;
 public class UserService : IUserService
 {
     private readonly SankiContext _sankiContext;
-    private readonly IJwtService _jwtService;
     private readonly IPasswordService _passwordService;
 
-    public UserService(SankiContext sankiContext, IJwtService jwtService, IPasswordService passwordService)
+    public UserService(SankiContext sankiContext, IPasswordService passwordService)
     {
         _sankiContext = sankiContext;
-        _jwtService = jwtService;
         _passwordService = passwordService;
     }
 
@@ -32,20 +30,21 @@ public class UserService : IUserService
             Email = registerUserRequestDto.Email,
         };
 
-        var authResponseDto = _jwtService.GenerateJwt(user);
-
         var salt = new byte[128 / 8];
         var userSalt = _passwordService.GenerateSalt(salt);
 
         user.Password = _passwordService.EncryptPassword(registerUserRequestDto.Password, userSalt);
         user.Salt = userSalt;
-        user.RefreshToken = authResponseDto.RefreshToken;
-        user.RefreshTokenExpiration = authResponseDto.RefreshTokenExpiration;
 
         await _sankiContext.Users.AddAsync(user);
         await _sankiContext.SaveChangesAsync();
 
-        return authResponseDto;
+        return new RegisterUserResponseDTO
+        {
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+        };
     }
 
     private async Task<bool> IsUserAlreadyRegisterAsync(RegisterUserRequestDTO registerUserRequestDto)
