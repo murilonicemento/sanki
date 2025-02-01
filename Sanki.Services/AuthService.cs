@@ -9,11 +9,13 @@ public class AuthService : IAuthService
 {
     private readonly SankiContext _sankiContext;
     private readonly IPasswordService _passwordService;
+    private readonly IJwtService _jwtService;
 
-    public AuthService(SankiContext sankiContext, IPasswordService passwordService)
+    public AuthService(SankiContext sankiContext, IPasswordService passwordService, IJwtService jwtService)
     {
         _sankiContext = sankiContext;
         _passwordService = passwordService;
+        _jwtService = jwtService;
     }
 
     public async Task<LoginUserResponseDTO?> LoginAsync(LoginUserRequestDTO loginUserRequestDto)
@@ -27,16 +29,6 @@ public class AuthService : IAuthService
             .Where(options => options.Email == loginUserRequestDto.Email && options.Password == encryptedPassword)
             .FirstOrDefaultAsync();
 
-        if (loggedUser is null) return null;
-
-        return new LoginUserResponseDTO
-        {
-            FirstName = loggedUser.FirstName,
-            LastName = loggedUser.LastName,
-            Email = loggedUser.Email,
-            Token = loginUserRequestDto.Token,
-            RefreshToken = loggedUser.RefreshToken,
-            RefreshTokenExpiration = loggedUser.RefreshTokenExpiration
-        };
+        return loggedUser is null ? null : _jwtService.GenerateJwt(loggedUser);
     }
 }
