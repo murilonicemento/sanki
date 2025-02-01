@@ -13,10 +13,6 @@ public class SankiContext : DbContext
 
     public virtual DbSet<Review> Reviews { get; set; }
 
-    public SankiContext()
-    {
-    }
-
     public SankiContext(DbContextOptions<SankiContext> options) : base(options)
     {
     }
