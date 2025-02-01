@@ -47,15 +47,15 @@ public class UserServiceTest
     public async Task Register_ShouldReturnValidRegisterResponse()
     {
         var registerUserDto = _fixture.Build<RegisterUserRequestDTO>().Create();
-        var authResponseDtoExpected = new RegisterUserResponseDTO
+        var registerUserResponseDtoExpected = new RegisterUserResponseDTO
         {
             FirstName = registerUserDto.FirstName,
             LastName = registerUserDto.LastName,
             Email = registerUserDto.Email
         };
-        var authResponseDtoResult = await _userService.RegisterAsync(registerUserDto);
+        var registerUserResponseDtoResult = await _userService.RegisterAsync(registerUserDto);
 
-        Assert.Equal(authResponseDtoExpected, authResponseDtoResult);
+        Assert.Equal(registerUserResponseDtoExpected, registerUserResponseDtoResult);
     }
 
     [Fact]
