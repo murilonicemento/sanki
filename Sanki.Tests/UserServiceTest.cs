@@ -44,7 +44,7 @@ public class UserServiceTest
     }
 
     [Fact]
-    public async Task Register_ShouldReturnValidAuthResponse()
+    public async Task Register_ShouldReturnValidRegisterResponse()
     {
         var registerUserDto = _fixture.Build<RegisterUserRequestDTO>().Create();
         var authResponseDtoExpected = new RegisterUserResponseDTO
