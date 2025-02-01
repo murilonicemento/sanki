@@ -10,6 +10,4 @@ public class LoginUserRequestDTO
 
     [Required(ErrorMessage = "Password can't be blank.")]
     public string Password { get; set; }
-    
-    public string Token { get; set; }
 }
