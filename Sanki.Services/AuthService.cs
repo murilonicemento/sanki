@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Sanki.Persistence;
 using Sanki.Services.Contracts;
 using Sanki.Services.Contracts.DTO;
@@ -30,5 +32,30 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync();
 
         return loggedUser is null ? null : _jwtService.GenerateJwt(loggedUser);
+    }
+
+    public async Task<LoginUserResponseDTO> GenerateNewAccessTokenAsync(TokenRequestDTO tokenRequestDto)
+    {
+        var principal = _jwtService.GetPrincipalFromJwt(tokenRequestDto.Token);
+
+        if (principal is null) throw new SecurityTokenException("Invalid json web token.");
+
+        var email = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await _sankiContext.Users.FirstOrDefaultAsync(user => user.Email == email);
+
+        if (user is null || user.RefreshToken != tokenRequestDto.RefreshToken ||
+            user.RefreshTokenExpiration <= DateTime.Now)
+        {
+            throw new SecurityTokenException("Invalid refresh token.");
+        }
+
+        var loginUserResponseDto = _jwtService.GenerateJwt(user);
+
+        user.RefreshToken = loginUserResponseDto.RefreshToken;
+        user.RefreshTokenExpiration = loginUserResponseDto.RefreshTokenExpiration;
+
+        await _sankiContext.SaveChangesAsync();
+
+        return loginUserResponseDto;
     }
 }
