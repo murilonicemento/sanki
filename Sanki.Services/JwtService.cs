@@ -57,6 +57,33 @@ public class JwtService : IJwtService
         };
     }
 
+    public ClaimsPrincipal? GetPrincipalFromJwt(string token)
+    {
+        var tokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateAudience = true,
+            ValidAudience = _configuration["Jwt:Audience"],
+            ValidateIssuer = true,
+            ValidIssuer = _configuration["Jwt:Issuer"],
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey =
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? string.Empty)),
+            ValidateLifetime = true
+        };
+
+        var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+        var principal =
+            jwtSecurityTokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
+
+        if (securityToken is not JwtSecurityToken jwtSecurityToken ||
+            !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.Sha256, StringComparison.InvariantCultureIgnoreCase))
+        {
+            throw new SecurityTokenException("Invalid Token.");
+        }
+
+        return principal;
+    }
+
     private static string GenerateRefreshToken()
     {
         var bytes = new byte[64];
