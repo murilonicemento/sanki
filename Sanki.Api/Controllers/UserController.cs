@@ -29,9 +29,9 @@ public class UserController : ControllerBase
 
         try
         {
-            var authResponseDto = await _userService.RegisterAsync(registerUserRequestDto);
+            var registerUserResponseDto = await _userService.RegisterAsync(registerUserRequestDto);
 
-            return Ok(authResponseDto);
+            return Created("User created successfully.", registerUserResponseDto);
         }
         catch (InvalidOperationException exception)
         {
