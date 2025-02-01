@@ -16,7 +16,7 @@ public class User
 
     public string RefreshToken { get; set; }
 
-    public DateTime RefreshTokenExpiration { get; set; }
+    public DateTime? RefreshTokenExpiration { get; set; }
 
     public virtual ICollection<Resume> Resumes { get; set; }
 }
