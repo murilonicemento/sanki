@@ -5,5 +5,5 @@ namespace Sanki.Services.Contracts;
 
 public interface IJwtService
 {
-    public RegisterUserResponseDTO GenerateJwt(User user);
+    public LoginUserResponseDTO GenerateJwt(User user);
 }
