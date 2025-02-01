@@ -1,6 +1,5 @@
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Sanki.Persistence;
 using Sanki.Services;
 using Sanki.Services.Contracts.DTO;
