@@ -31,7 +31,16 @@ public class AuthService : IAuthService
             .Where(options => options.Email == loginUserRequestDto.Email && options.Password == encryptedPassword)
             .FirstOrDefaultAsync();
 
-        return loggedUser is null ? null : _jwtService.GenerateJwt(loggedUser);
+        if (loggedUser is null) throw new UnauthorizedAccessException("Password is incorrect.");
+
+        var loginUserResponseDto = _jwtService.GenerateJwt(loggedUser);
+
+        loggedUser.RefreshToken = loginUserResponseDto.RefreshToken;
+        loggedUser.RefreshTokenExpiration = loginUserResponseDto.RefreshTokenExpiration;
+
+        await _sankiContext.SaveChangesAsync();
+
+        return loginUserResponseDto;
     }
 
     public async Task<LoginUserResponseDTO> GenerateNewAccessTokenAsync(TokenRequestDTO tokenRequestDto)
@@ -40,7 +49,7 @@ public class AuthService : IAuthService
 
         if (principal is null) throw new SecurityTokenException("Invalid json web token.");
 
-        var email = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        var email = principal.FindFirstValue(ClaimTypes.Email);
         var user = await _sankiContext.Users.FirstOrDefaultAsync(user => user.Email == email);
 
         if (user is null || user.RefreshToken != tokenRequestDto.RefreshToken ||
