@@ -12,13 +12,11 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly IModelStateValidator _modelStateValidator;
-    private readonly IJwtService _jwtService;
 
-    public AuthController(IAuthService authService, IModelStateValidator modelStateValidator, IJwtService jwtService)
+    public AuthController(IAuthService authService, IModelStateValidator modelStateValidator)
     {
         _authService = authService;
         _modelStateValidator = modelStateValidator;
-        _jwtService = jwtService;
     }
 
     [HttpPost]
@@ -33,17 +31,19 @@ public class AuthController : ControllerBase
         {
             var loginUserResponseDto = await _authService.LoginAsync(loginUserRequestDto);
 
-            return loginUserResponseDto is null
-                ? Problem("Password is incorrect.", statusCode: 401)
-                : Ok(loginUserResponseDto);
+            return Ok(loginUserResponseDto);
         }
         catch (InvalidOperationException exception)
         {
             return Problem(exception.Message, statusCode: 401);
         }
+        catch (UnauthorizedAccessException exception)
+        {
+            return Problem(exception.Message, statusCode: 401);
+        }
     }
 
-    [HttpPost]
+    [HttpPost("GenerateNewToken")]
     public async Task<ActionResult<LoginUserResponseDTO>> GenerateNewToken(TokenRequestDTO? tokenRequest)
     {
         if (tokenRequest is null) return Problem("Invalid request.", statusCode: 400);
@@ -56,7 +56,7 @@ public class AuthController : ControllerBase
         }
         catch (SecurityTokenException exception)
         {
-            return Problem(exception.Message, statusCode: 400);
+            return Problem(exception.Message, statusCode: 401);
         }
     }
 }
