@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -29,9 +28,9 @@ public class JwtService : IJwtService
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Iat, DateTime.Now.ToString(CultureInfo.InvariantCulture)),
+            new(JwtRegisteredClaimNames.Iat, new DateTimeOffset(DateTime.UtcNow)
+                .ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
             new(ClaimTypes.Name, user.FirstName),
-            new(ClaimTypes.NameIdentifier, user.Email),
             new(ClaimTypes.Email, user.Email)
         };
         var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -68,7 +67,7 @@ public class JwtService : IJwtService
             ValidateIssuerSigningKey = true,
             IssuerSigningKey =
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? string.Empty)),
-            ValidateLifetime = true
+            ValidateLifetime = true,
         };
 
         var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
@@ -76,7 +75,7 @@ public class JwtService : IJwtService
             jwtSecurityTokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
 
         if (securityToken is not JwtSecurityToken jwtSecurityToken ||
-            !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.Sha256, StringComparison.InvariantCultureIgnoreCase))
+            !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
         {
             throw new SecurityTokenException("Invalid Token.");
         }
