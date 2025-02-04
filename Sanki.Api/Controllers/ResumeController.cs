@@ -50,11 +50,15 @@ public class ResumeController : ControllerBase
             return Problem(errorMessages, statusCode: 400);
         }
 
+        var token = HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", "");
+
+        if (token.IsNullOrEmpty()) return Problem("Token was not given.", statusCode: 400);
+
         try
         {
-            await _resumeService.AddResumeAsync(addResumeRequestDto);
+            await _resumeService.AddResumeAsync(addResumeRequestDto, token);
 
-            return Ok();
+            return NoContent();
         }
         catch (UnauthorizedAccessException exception)
         {
