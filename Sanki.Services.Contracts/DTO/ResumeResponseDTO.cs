@@ -1,6 +1,6 @@
 namespace Sanki.Services.Contracts.DTO;
 
-public class ResumeDTO
+public class ResumeResponseDTO
 {
     public string Title { get; set; }
     public string? Content { get; set; }

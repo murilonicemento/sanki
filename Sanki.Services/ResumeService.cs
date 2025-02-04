@@ -20,7 +20,7 @@ public class ResumeService : IResumeService
         _sankiContext = sankiContext;
     }
 
-    public async Task<List<ResumeDTO>> GetResumesByUserAsync(string token)
+    public async Task<List<ResumeResponseDTO>> GetResumesByUserAsync(string token)
     {
         var principal = _jwtService.GetPrincipalFromJwt(token);
 
@@ -32,7 +32,7 @@ public class ResumeService : IResumeService
 
         var resumes = await _sankiContext.Resumes
             .Where(resume => resume.User.Email == email)
-            .Select(resume => new ResumeDTO { Title = resume.Title, Content = resume.Content })
+            .Select(resume => new ResumeResponseDTO { Title = resume.Title, Content = resume.Content })
             .ToListAsync();
 
         return resumes;

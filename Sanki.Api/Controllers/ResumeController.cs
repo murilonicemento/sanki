@@ -20,7 +20,7 @@ public class ResumeController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ResumeDTO>> GetResumes()
+    public async Task<ActionResult<ResumeResponseDTO>> GetResumes()
     {
         if (!ValidateToken()) return Problem("Token was not given.", statusCode: 400);
 
@@ -67,9 +67,11 @@ public class ResumeController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<ActionResult> UpdateResume(ResumeDTO resumeDto)
+    public async Task<ActionResult> UpdateResume(ResumeRequestDTO resumeRequestDto)
     {
         if (!ValidateToken()) return Problem("Token was not given.", statusCode: 400);
+        
+        
     }
 
     private bool ValidateToken()
