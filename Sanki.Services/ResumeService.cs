@@ -57,6 +57,22 @@ public class ResumeService : IResumeService
     {
         var principal = GetPrincipal(token);
         var email = GetEmail(principal);
+        var resume = _sankiContext.Resumes
+            .FirstOrDefault(resume => resume.Id == updateResumeRequestDto.Id && resume.User.Email == email);
+
+        if (resume is null) throw new KeyNotFoundException("Resume not found for current user.");
+
+        resume.Title = updateResumeRequestDto.Title;
+        resume.Content = updateResumeRequestDto.Content;
+
+        await _sankiContext.SaveChangesAsync();
+
+        return new ResumeResponseDTO
+        {
+            Id = resume.Id,
+            Title = resume.Title,
+            Content = resume.Content
+        };
     }
 
     private ClaimsPrincipal GetPrincipal(string token)
