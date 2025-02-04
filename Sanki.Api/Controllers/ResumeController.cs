@@ -22,11 +22,13 @@ public class ResumeController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ResumeResponseDTO>> GetResumes()
     {
-        if (!ValidateToken()) return Problem("Token was not given.", statusCode: 400);
+        var (isValid, token) = ValidateToken();
+
+        if (!isValid) return Problem("Token was not given.", statusCode: 400);
 
         try
         {
-            var resumes = await _resumeService.GetResumesByUserAsync(accessToken);
+            var resumes = await _resumeService.GetResumesByUserAsync(token);
 
             return Ok(resumes);
         }
@@ -48,7 +50,9 @@ public class ResumeController : ControllerBase
             return Problem(errorMessages, statusCode: 400);
         }
 
-        if (!ValidateToken()) return Problem("Token was not given.", statusCode: 400);
+        var (isValid, token) = ValidateToken();
+
+        if (!isValid) return Problem("Token was not given.", statusCode: 400);
 
         try
         {
@@ -69,15 +73,32 @@ public class ResumeController : ControllerBase
     [HttpPut]
     public async Task<ActionResult> UpdateResume(ResumeRequestDTO resumeRequestDto)
     {
-        if (!ValidateToken()) return Problem("Token was not given.", statusCode: 400);
-        
-        
+        if (!_modelStateValidator.ValidateModelState(ModelState, out var errorMessages))
+        {
+            return Problem(errorMessages, statusCode: 400);
+        }
+
+        var (isValid, token) = ValidateToken();
+
+        if (!isValid) return Problem("Token was not given.", statusCode: 400);
+
+        try
+        {
+            var resume = await _resumeService.UpdateResumeAsync(resumeRequestDto, token);
+
+            return Ok(resume);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
-    private bool ValidateToken()
+    private (bool isValid, string token) ValidateToken()
     {
         var token = HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", "");
 
-        return !token.IsNullOrEmpty();
+        return token.IsNullOrEmpty() ? (false, string.Empty) : (true, token);
     }
 }
