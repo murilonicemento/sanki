@@ -8,7 +8,4 @@ public class AddResumeRequestDTO
     public string Title { get; set; }
 
     public string? Content { get; set; }
-
-    [Required(ErrorMessage = "Token can't be blank.")]
-    public string Token { get; set; }
 }
