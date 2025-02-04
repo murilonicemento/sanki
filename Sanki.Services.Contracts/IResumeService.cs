@@ -5,5 +5,5 @@ namespace Sanki.Services.Contracts;
 public interface IResumeService
 {
     public Task<List<ResumeDTO>> GetResumesByUserAsync(string token);
-    public Task AddResumeAsync(AddResumeRequestDTO addResumeRequestDto);
+    public Task AddResumeAsync(AddResumeRequestDTO addResumeRequestDto, string token);
 }
