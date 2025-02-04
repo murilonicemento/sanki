@@ -31,6 +31,7 @@ public class JwtService : IJwtService
             new(JwtRegisteredClaimNames.Iat, new DateTimeOffset(DateTime.UtcNow)
                 .ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
             new(ClaimTypes.Name, user.FirstName),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email)
         };
         var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
