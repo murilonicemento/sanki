@@ -43,7 +43,7 @@ public class ResumeController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult> AddResume(ResumeRequestDTO resumeRequestDto)
+    public async Task<ActionResult> AddResume(AddResumeRequestDTO addResumeRequestDto)
     {
         if (!_modelStateValidator.ValidateModelState(ModelState, out var errorMessages))
         {
@@ -56,7 +56,7 @@ public class ResumeController : ControllerBase
 
         try
         {
-            await _resumeService.AddResumeAsync(resumeRequestDto, token);
+            await _resumeService.AddResumeAsync(addResumeRequestDto, token);
 
             return NoContent();
         }
@@ -71,7 +71,7 @@ public class ResumeController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<ActionResult> UpdateResume(ResumeRequestDTO resumeRequestDto)
+    public async Task<ActionResult> UpdateResume(UpdateResumeRequestDTO updateResumeRequestDto)
     {
         if (!_modelStateValidator.ValidateModelState(ModelState, out var errorMessages))
         {
@@ -84,7 +84,7 @@ public class ResumeController : ControllerBase
 
         try
         {
-            var resume = await _resumeService.UpdateResumeAsync(resumeRequestDto, token);
+            var resume = await _resumeService.UpdateResumeAsync(updateResumeRequestDto, token);
 
             return Ok(resume);
         }
