@@ -43,7 +43,7 @@ public class ResumeController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult> AddResume(AddResumeRequestDTO addResumeRequestDto)
+    public async Task<ActionResult> AddResume(ResumeRequestDTO resumeRequestDto)
     {
         if (!_modelStateValidator.ValidateModelState(ModelState, out var errorMessages))
         {
@@ -56,7 +56,7 @@ public class ResumeController : ControllerBase
 
         try
         {
-            await _resumeService.AddResumeAsync(addResumeRequestDto, token);
+            await _resumeService.AddResumeAsync(resumeRequestDto, token);
 
             return NoContent();
         }
@@ -68,5 +68,11 @@ public class ResumeController : ControllerBase
         {
             return Problem(exception.Message, statusCode: 401);
         }
+    }
+
+    [HttpPut]
+    public async Task<ActionResult> UpdateResume(ResumeDTO updateResumeDto)
+    {
+        
     }
 }

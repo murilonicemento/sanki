@@ -38,7 +38,7 @@ public class ResumeService : IResumeService
         return resumes;
     }
 
-    public async Task AddResumeAsync(AddResumeRequestDTO addResumeRequestDto, string token)
+    public async Task AddResumeAsync(ResumeRequestDTO resumeRequestDto, string token)
     {
         var principal = _jwtService.GetPrincipalFromJwt(token);
 
@@ -51,8 +51,8 @@ public class ResumeService : IResumeService
 
         var resume = new Resume
         {
-            Title = addResumeRequestDto.Title,
-            Content = addResumeRequestDto.Content,
+            Title = resumeRequestDto.Title,
+            Content = resumeRequestDto.Content,
             UserId = id
         };
 
