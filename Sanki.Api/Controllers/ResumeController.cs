@@ -22,9 +22,7 @@ public class ResumeController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ResumeDTO>> GetResumes()
     {
-        var accessToken = HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", "");
-
-        if (string.IsNullOrEmpty(accessToken)) return Problem("Invalid request.", statusCode: 400);
+        if (!ValidateToken()) return Problem("Token was not given.", statusCode: 400);
 
         try
         {
@@ -50,9 +48,7 @@ public class ResumeController : ControllerBase
             return Problem(errorMessages, statusCode: 400);
         }
 
-        var token = HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", "");
-
-        if (token.IsNullOrEmpty()) return Problem("Token was not given.", statusCode: 400);
+        if (!ValidateToken()) return Problem("Token was not given.", statusCode: 400);
 
         try
         {
@@ -71,8 +67,15 @@ public class ResumeController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<ActionResult> UpdateResume(ResumeDTO updateResumeDto)
+    public async Task<ActionResult> UpdateResume(ResumeDTO resumeDto)
     {
-        
+        if (!ValidateToken()) return Problem("Token was not given.", statusCode: 400);
+    }
+
+    private bool ValidateToken()
+    {
+        var token = HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", "");
+
+        return !token.IsNullOrEmpty();
     }
 }
