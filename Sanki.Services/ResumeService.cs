@@ -22,27 +22,20 @@ public class ResumeService : IResumeService
 
     public async Task<List<ResumeResponseDTO>> GetResumesByUserAsync(string token)
     {
-        var principal = _jwtService.GetPrincipalFromJwt(token);
-
-        if (principal is null) throw new SecurityTokenException("Invalid json web token.");
-
-        var email = principal.FindFirstValue(ClaimTypes.Email);
-
-        if (email is null) throw new UnauthorizedAccessException("User is not authorized.");
+        var principal = GetPrincipal(token);
+        var email = GetEmail(principal);
 
         var resumes = await _sankiContext.Resumes
             .Where(resume => resume.User.Email == email)
-            .Select(resume => new ResumeResponseDTO { Title = resume.Title, Content = resume.Content })
+            .Select(resume => new ResumeResponseDTO { Id = resume.Id, Title = resume.Title, Content = resume.Content })
             .ToListAsync();
 
         return resumes;
     }
 
-    public async Task AddResumeAsync(ResumeRequestDTO resumeRequestDto, string token)
+    public async Task AddResumeAsync(AddResumeRequestDTO addResumeRequestDto, string token)
     {
-        var principal = _jwtService.GetPrincipalFromJwt(token);
-
-        if (principal is null) throw new SecurityTokenException("Invalid token");
+        var principal = GetPrincipal(token);
 
         if (!Guid.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var id))
         {
@@ -51,12 +44,36 @@ public class ResumeService : IResumeService
 
         var resume = new Resume
         {
-            Title = resumeRequestDto.Title,
-            Content = resumeRequestDto.Content,
+            Title = addResumeRequestDto.Title,
+            Content = addResumeRequestDto.Content,
             UserId = id
         };
 
         await _sankiContext.Resumes.AddAsync(resume);
         await _sankiContext.SaveChangesAsync();
+    }
+
+    public async Task<ResumeResponseDTO> UpdateResumeAsync(UpdateResumeRequestDTO updateResumeRequestDto, string token)
+    {
+        var principal = GetPrincipal(token);
+        var email = GetEmail(principal);
+    }
+
+    private ClaimsPrincipal GetPrincipal(string token)
+    {
+        var principal = _jwtService.GetPrincipalFromJwt(token);
+
+        if (principal is null) throw new SecurityTokenException("Invalid token");
+
+        return principal;
+    }
+
+    private static string GetEmail(ClaimsPrincipal principal)
+    {
+        var email = principal.FindFirstValue(ClaimTypes.Email);
+
+        if (email is null) throw new UnauthorizedAccessException("User is not authorized.");
+
+        return email;
     }
 }
