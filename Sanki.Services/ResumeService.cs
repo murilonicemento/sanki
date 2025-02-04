@@ -38,13 +38,13 @@ public class ResumeService : IResumeService
         return resumes;
     }
 
-    public async Task AddResumeAsync(AddResumeRequestDTO addResumeRequestDto)
+    public async Task AddResumeAsync(AddResumeRequestDTO addResumeRequestDto, string token)
     {
-        var principal = _jwtService.GetPrincipalFromJwt(addResumeRequestDto.Token);
+        var principal = _jwtService.GetPrincipalFromJwt(token);
 
         if (principal is null) throw new SecurityTokenException("Invalid token");
 
-        if (!Guid.TryParse(principal.FindFirstValue(JwtRegisteredClaimNames.Sub), out var id))
+        if (!Guid.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var id))
         {
             throw new UnauthorizedAccessException("User is not authorized.");
         }
