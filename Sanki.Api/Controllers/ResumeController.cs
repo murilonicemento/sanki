@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Sanki.Api.Validations.Interfaces;
 using Sanki.Services.Contracts;
@@ -40,6 +41,10 @@ public class ResumeController : ControllerBase
         {
             return Problem(exception.Message, statusCode: 401);
         }
+        catch (DbUpdateException)
+        {
+            return Problem("An error occurred. Contact the system admin.", statusCode: 500);
+        }
     }
 
     [HttpPost]
@@ -58,7 +63,7 @@ public class ResumeController : ControllerBase
         {
             await _resumeService.AddResumeAsync(addResumeRequestDto, token);
 
-            return NoContent();
+            return Ok();
         }
         catch (UnauthorizedAccessException exception)
         {
@@ -67,6 +72,10 @@ public class ResumeController : ControllerBase
         catch (SecurityTokenException exception)
         {
             return Problem(exception.Message, statusCode: 401);
+        }
+        catch (DbUpdateException)
+        {
+            return Problem("An error occurred. Contact the system admin.", statusCode: 500);
         }
     }
 
@@ -88,10 +97,41 @@ public class ResumeController : ControllerBase
 
             return Ok(resume);
         }
-        catch (Exception e)
+        catch (KeyNotFoundException exception)
         {
-            Console.WriteLine(e);
-            throw;
+            return Problem(exception.Message, statusCode: 404);
+        }
+        catch (DbUpdateException)
+        {
+            return Problem("An error occurred. Contact the system admin.", statusCode: 500);
+        }
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> DeleteResume(Guid id)
+    {
+        if (!_modelStateValidator.ValidateModelState(ModelState, out var errorMessages))
+        {
+            return Problem(errorMessages, statusCode: 400);
+        }
+
+        var (isValid, token) = ValidateToken();
+
+        if (!isValid) return Problem("Token was not given.", statusCode: 400);
+
+        try
+        {
+            await _resumeService.DeleteResumeAsync(id, token);
+
+            return Ok();
+        }
+        catch (KeyNotFoundException exception)
+        {
+            return Problem(exception.Message, statusCode: 404);
+        }
+        catch (DbUpdateException)
+        {
+            return Problem("An error occurred. Contact the system admin.", statusCode: 500);
         }
     }
 
