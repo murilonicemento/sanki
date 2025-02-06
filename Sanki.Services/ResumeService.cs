@@ -1,4 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -73,6 +72,20 @@ public class ResumeService : IResumeService
             Title = resume.Title,
             Content = resume.Content
         };
+    }
+
+    public async Task DeleteResumeAsync(Guid id, string token)
+    {
+        var principal = GetPrincipal(token);
+        var email = GetEmail(principal);
+
+        var resume = await _sankiContext.Resumes
+            .FirstOrDefaultAsync(resume => resume.User.Email == email && resume.Id == id);
+
+        if (resume is null) throw new KeyNotFoundException("Resume already deleted.");
+
+        _sankiContext.Resumes.Remove(resume);
+        await _sankiContext.SaveChangesAsync();
     }
 
     private ClaimsPrincipal GetPrincipal(string token)
