@@ -13,17 +13,22 @@ public class ResumeController : ControllerBase
 {
     private readonly IResumeService _resumeService;
     private readonly IModelStateValidator _modelStateValidator;
+    private readonly ITokenValidator _tokenValidator;
 
-    public ResumeController(IResumeService resumeService, IModelStateValidator modelStateValidator)
+    public ResumeController(
+        IResumeService resumeService,
+        IModelStateValidator modelStateValidator,
+        ITokenValidator tokenValidator)
     {
         _resumeService = resumeService;
         _modelStateValidator = modelStateValidator;
+        _tokenValidator = tokenValidator;
     }
 
     [HttpGet]
     public async Task<ActionResult<ResumeResponseDTO>> GetResumes()
     {
-        var (isValid, token) = ValidateToken();
+        var (isValid, token) = _tokenValidator.ValidateToken(HttpContext);
 
         if (!isValid) return Problem("Token was not given.", statusCode: 400);
 
@@ -55,7 +60,7 @@ public class ResumeController : ControllerBase
             return Problem(errorMessages, statusCode: 400);
         }
 
-        var (isValid, token) = ValidateToken();
+        var (isValid, token) = _tokenValidator.ValidateToken(HttpContext);
 
         if (!isValid) return Problem("Token was not given.", statusCode: 400);
 
@@ -87,7 +92,7 @@ public class ResumeController : ControllerBase
             return Problem(errorMessages, statusCode: 400);
         }
 
-        var (isValid, token) = ValidateToken();
+        var (isValid, token) = _tokenValidator.ValidateToken(HttpContext);
 
         if (!isValid) return Problem("Token was not given.", statusCode: 400);
 
@@ -115,7 +120,8 @@ public class ResumeController : ControllerBase
             return Problem(errorMessages, statusCode: 400);
         }
 
-        var (isValid, token) = ValidateToken();
+        var (isValid, token) = _tokenValidator.ValidateToken(HttpContext);
+        ;
 
         if (!isValid) return Problem("Token was not given.", statusCode: 400);
 
@@ -133,12 +139,5 @@ public class ResumeController : ControllerBase
         {
             return Problem("An error occurred. Contact the system admin.", statusCode: 500);
         }
-    }
-
-    private (bool isValid, string token) ValidateToken()
-    {
-        var token = HttpContext.Request.Headers.Authorization.ToString().Replace("Bearer ", "");
-
-        return token.IsNullOrEmpty() ? (false, string.Empty) : (true, token);
     }
 }
