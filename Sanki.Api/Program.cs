@@ -23,10 +23,13 @@ builder.Services.AddDbContext<SankiContext>(options =>
 // Dependencys/Services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IModelStateValidator, ModelStateValidator>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IResumeService, ResumeService>();
+builder.Services.AddScoped<IFlashcardService, FlashcardService>();
+
+builder.Services.AddScoped<IModelStateValidator, ModelStateValidator>();
+builder.Services.AddScoped<ITokenValidator, TokenValidator>();
 
 // JWT
 builder.Services
