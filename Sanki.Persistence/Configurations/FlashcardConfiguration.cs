@@ -24,10 +24,12 @@ public class FlashcardConfiguration : IEntityTypeConfiguration<Flashcard>
             .HasMaxLength(255)
             .HasColumnName("response");
         builder.Property(e => e.ResumeId).HasColumnName("resume_id");
+        builder.Property(e => e.UserId).HasColumnName("user_id");
         builder.Property(e => e.Status)
             .HasMaxLength(50)
             .HasColumnName("status");
 
+        builder.HasOne(d => d.User).WithMany(p => p.Flashcards);
         builder.HasOne(d => d.Resume).WithMany(p => p.Flashcards)
             .HasForeignKey(d => d.ResumeId)
             .HasConstraintName("flashcards_fk4");

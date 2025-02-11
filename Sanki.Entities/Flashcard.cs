@@ -10,7 +10,11 @@ public class Flashcard
 
     public string Status { get; set; }
 
+    public Guid UserId { get; set; }
+
     public Guid ResumeId { get; set; }
+
+    public virtual User User { get; set; }
 
     public virtual Resume Resume { get; set; }
 
