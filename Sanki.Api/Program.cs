@@ -1,4 +1,5 @@
 using System.Text;
+using Configurations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -30,6 +31,12 @@ builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 
 builder.Services.AddScoped<IModelStateValidator, ModelStateValidator>();
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();
+
+// Options
+builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemini"));
+
+// HttpClient
+builder.Services.AddHttpClient<IFlashcardService, FlashcardService>();
 
 // JWT
 builder.Services
