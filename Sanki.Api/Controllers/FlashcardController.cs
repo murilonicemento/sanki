@@ -44,4 +44,34 @@ public class FlashcardController : ControllerBase
             return Problem(exception.Message, statusCode: 401);
         }
     }
+
+    [HttpPost("{resumeId:guid}")]
+    public async Task<ActionResult<List<FlashcardResponseDTO>>> GenerateFlashcardsByResumeRequest(Guid resumeId)
+    {
+        var (isValid, token) = _tokenValidator.ValidateToken(HttpContext);
+
+        if (isValid is false)
+        {
+            return Problem("Token not given.", statusCode: 400);
+        }
+
+        try
+        {
+            await _flashcardService.GenerateFlashcardsAsync(resumeId, token);
+
+            return Created();
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            return Problem(exception.Message, statusCode: 401);
+        }
+        catch (SecurityTokenException exception)
+        {
+            return Problem(exception.Message, statusCode: 401);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Problem(exception.Message, statusCode: 500);
+        }
+    }
 }
