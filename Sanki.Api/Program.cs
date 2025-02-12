@@ -1,5 +1,5 @@
 using System.Text;
-using Configurations;
+using Sanki.Configurations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Configurations\Configurations.csproj" />
+      <ProjectReference Include="..\Sanki.Configurations\Sanki.Configurations.csproj" />
       <ProjectReference Include="..\Sanki.Entities\Sanki.Entities.csproj" />
       <ProjectReference Include="..\Sanki.Persistence\Sanki.Persistence.csproj" />
       <ProjectReference Include="..\Sanki.Services.Contracts\Sanki.Services.Contracts.csproj" />

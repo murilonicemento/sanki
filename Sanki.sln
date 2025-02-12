@@ -12,7 +12,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanki.Services", "Sanki.Ser
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanki.Tests", "Sanki.Tests\Sanki.Tests.csproj", "{E7A7C4A3-EC57-4CC6-821E-3CC866886D47}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Configurations", "Configurations\Configurations.csproj", "{F6F3CE04-5230-4E27-A69E-5F5853C67484}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanki.Configurations", "Sanki.Configurations\Sanki.Configurations.csproj", "{F6F3CE04-5230-4E27-A69E-5F5853C67484}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,4 +1,4 @@
-﻿namespace Configurations;
+﻿namespace Sanki.Configurations;
 
 public class GeminiOptions
 {
