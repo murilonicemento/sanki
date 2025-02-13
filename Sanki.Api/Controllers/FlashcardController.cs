@@ -46,7 +46,7 @@ public class FlashcardController : ControllerBase
     }
 
     [HttpPost("{resumeId:guid}")]
-    public async Task<ActionResult<List<FlashcardResponseDTO>>> GenerateFlashcardsByResumeRequest(Guid resumeId)
+    public async Task<ActionResult> GenerateFlashcardsByResumeRequest(Guid resumeId)
     {
         var (isValid, token) = _tokenValidator.ValidateToken(HttpContext);
 
