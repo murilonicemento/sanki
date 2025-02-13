@@ -9,4 +9,6 @@ public class FlashcardResponseDTO
     public string Response { get; set; }
 
     public string Status { get; set; }
+
+    public DateTime? ReviewDate { get; set; }
 }
