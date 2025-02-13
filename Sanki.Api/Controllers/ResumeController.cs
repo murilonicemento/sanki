@@ -121,7 +121,6 @@ public class ResumeController : ControllerBase
         }
 
         var (isValid, token) = _tokenValidator.ValidateToken(HttpContext);
-        ;
 
         if (!isValid) return Problem("Token was not given.", statusCode: 400);
 
