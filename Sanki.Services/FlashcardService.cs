@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Sanki.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -34,7 +35,7 @@ public class FlashcardService : IFlashcardService
     {
         var principal = GetPrincipal(token);
 
-        if (!Guid.TryParse(principal.FindFirstValue(JwtRegisteredClaimNames.Sub), out var id))
+        if (!Guid.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var id))
         {
             throw new UnauthorizedAccessException("User is not authorized");
         }
@@ -47,7 +48,8 @@ public class FlashcardService : IFlashcardService
                     Id = flashcard.Id,
                     Question = flashcard.Question,
                     Response = flashcard.Response,
-                    Status = flashcard.Status
+                    Status = flashcard.Status,
+                    ReviewDate = flashcard.Review.ReviewDate
                 }).ToListAsync();
 
         return flashcards;
@@ -65,10 +67,10 @@ public class FlashcardService : IFlashcardService
         var resume = await _sankiContext.Resumes
             .FirstOrDefaultAsync(resume => resume.Id == resumeId && resume.UserId == id);
 
-        if (resume is null) throw new UnauthorizedAccessException("User is not authorized to access the resume.");
+        if (resume is null) throw new UnauthorizedAccessException("User is not authorized to access resource.");
 
         var prompt =
-            $"Create question and answer flashcards based on this summary and return a json containing the flashcards where the json should contain the question and answer of the flashcards: \n {resume.Title} \n {resume.Content}";
+            $"Generate a list of question-and-answer flashcards based on the following summary. Each flashcard should contain a well-formed question that tests key concepts from the summary and a concise but informative answer. Return only a valid JSON string containing an array of objects, where each object has the fields \"Question\" and \"Response\". Do not format the response as Markdown, code block, or include any additional text. The JSON should not contain any extra indentation, line breaks, or formatting. \n \n Summary: \n Title: {resume.Title} \n Content: {resume.Content} \n";
         var requestBody = new
         {
             contents = new[]
@@ -98,9 +100,9 @@ public class FlashcardService : IFlashcardService
             throw new InvalidOperationException(errorMessage);
         }
 
-        var flashcards =
-            JsonSerializer.Deserialize<List<FlashcardDeserealized>>(result.Candidates[0].Content.Parts[0].Text);
-
+        var content = result.Candidates[0].Content.Parts[0].Text.Replace("```", "").Replace("json", "");
+        var flashcards = JsonSerializer.Deserialize<List<FlashcardDeserealized>>(content);
+        Console.WriteLine(flashcards);
         if (flashcards is null)
             throw new InvalidOperationException("An error occured when generate flashcards. Contact the system admin.");
 
@@ -114,6 +116,7 @@ public class FlashcardService : IFlashcardService
         }).ToList();
 
         await _sankiContext.Flashcards.AddRangeAsync(flashcardsList);
+        await _sankiContext.SaveChangesAsync();
     }
 
     private ClaimsPrincipal GetPrincipal(string token)
