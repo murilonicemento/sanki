@@ -22,8 +22,8 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .HasColumnType("timestamp without time zone")
             .HasColumnName("review_date");
 
-        builder.HasOne(d => d.Flashcard).WithMany(p => p.Reviews)
-            .HasForeignKey(d => d.FlashcardId)
+        builder.HasOne(d => d.Flashcard).WithOne(d => d.Review)
+            .HasForeignKey<Review>(d => d.FlashcardId)
             .HasConstraintName("reviews_fk2");
     }
 }

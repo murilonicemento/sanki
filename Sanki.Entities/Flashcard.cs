@@ -18,5 +18,5 @@ public class Flashcard
 
     public virtual Resume Resume { get; set; }
 
-    public virtual ICollection<Review> Reviews { get; set; }
+    public virtual Review Review { get; set; }
 }
