@@ -20,6 +20,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Sanki.Persistence\Sanki.Persistence.csproj" />
+      <ProjectReference Include="..\Sanki.Repositories\Sanki.Repositories.csproj" />
       <ProjectReference Include="..\Sanki.Services.Contracts\Sanki.Services.Contracts.csproj" />
       <ProjectReference Include="..\Sanki.Services\Sanki.Services.csproj" />
     </ItemGroup>

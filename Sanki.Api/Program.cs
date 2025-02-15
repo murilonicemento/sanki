@@ -7,6 +7,8 @@ using Microsoft.OpenApi.Models;
 using Sanki.Api.Validations;
 using Sanki.Api.Validations.Interfaces;
 using Sanki.Persistence;
+using Sanki.Repositories;
+using Sanki.Repositories.Contracts;
 using Sanki.Services;
 using Sanki.Services.Contracts;
 
@@ -29,6 +31,11 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IResumeService, ResumeService>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IResumeRepository, ResumeRepository>();
+builder.Services.AddScoped<IFlashcardRepository, FlashcardRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 builder.Services.AddScoped<IModelStateValidator, ModelStateValidator>();
 builder.Services.AddScoped<ITokenValidator, TokenValidator>();
