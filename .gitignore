@@ -8,6 +8,6 @@ obj/
 packages/
 
 appsettings.json
-env
+.env
 
 *.log
