@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Sanki.Entities\Sanki.Entities.csproj" />
+    <ProjectReference Include="..\Sanki.Services.Contracts\Sanki.Services.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
