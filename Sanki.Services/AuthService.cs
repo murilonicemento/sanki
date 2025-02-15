@@ -40,7 +40,7 @@ public class AuthService : IAuthService
         var principal = _jwtService.GetPrincipalFromJwt(tokenRequestDto.Token)
             ?? throw new SecurityTokenException("Invalid json web token.");
         var email = principal.FindFirstValue(ClaimTypes.Email) ?? throw new UnauthorizedAccessException("User is not authorized.");
-        var user = await _authRepository.GetUserByEmailAsync(email);
+        var user = await _userRepository.GetUserByEmailAsync(email);
 
         if (user is null || user.RefreshToken != tokenRequestDto.RefreshToken ||
             user.RefreshTokenExpiration <= DateTime.Now)
