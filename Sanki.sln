@@ -1,5 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35806.99 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanki.Api", "Sanki.Api\Sanki.Api.csproj", "{34CA0C5F-0F46-484D-B727-1F46BD748070}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanki.Entities", "Sanki.Entities\Sanki.Entities.csproj", "{6433F4BA-C502-421C-B1F0-E094CCBC6B02}"
@@ -13,6 +16,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanki.Tests", "Sanki.Tests\Sanki.Tests.csproj", "{E7A7C4A3-EC57-4CC6-821E-3CC866886D47}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanki.Configurations", "Sanki.Configurations\Sanki.Configurations.csproj", "{F6F3CE04-5230-4E27-A69E-5F5853C67484}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanki.Repositories", "Sanki.Repositories\Sanki.Repositories.csproj", "{AF92204E-E455-4D1F-9948-8942D093C9AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sanki.Repositories.Contracts", "Sanki.Repositories.Contracts\Sanki.Repositories.Contracts.csproj", "{EC892B78-E1B3-4E73-8674-E7C80BAFF524}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,5 +55,19 @@ Global
 		{F6F3CE04-5230-4E27-A69E-5F5853C67484}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6F3CE04-5230-4E27-A69E-5F5853C67484}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6F3CE04-5230-4E27-A69E-5F5853C67484}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF92204E-E455-4D1F-9948-8942D093C9AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF92204E-E455-4D1F-9948-8942D093C9AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF92204E-E455-4D1F-9948-8942D093C9AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF92204E-E455-4D1F-9948-8942D093C9AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC892B78-E1B3-4E73-8674-E7C80BAFF524}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC892B78-E1B3-4E73-8674-E7C80BAFF524}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC892B78-E1B3-4E73-8674-E7C80BAFF524}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC892B78-E1B3-4E73-8674-E7C80BAFF524}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EAE0E399-7EB0-495C-B3AC-A517106A4487}
 	EndGlobalSection
 EndGlobal

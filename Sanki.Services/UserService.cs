@@ -1,6 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Sanki.Entities;
-using Sanki.Persistence;
+using Sanki.Repositories.Contracts;
 using Sanki.Services.Contracts;
 using Sanki.Services.Contracts.DTO;
 
@@ -8,13 +7,13 @@ namespace Sanki.Services;
 
 public class UserService : IUserService
 {
-    private readonly SankiContext _sankiContext;
     private readonly IPasswordService _passwordService;
+    private readonly IUserRepository _userRepository;
 
-    public UserService(SankiContext sankiContext, IPasswordService passwordService)
+    public UserService(IPasswordService passwordService, IUserRepository userRepository)
     {
-        _sankiContext = sankiContext;
         _passwordService = passwordService;
+        _userRepository = userRepository;
     }
 
     public async Task<RegisterUserResponseDTO> RegisterAsync(RegisterUserRequestDTO registerUserRequestDto)
@@ -36,8 +35,7 @@ public class UserService : IUserService
         user.Password = _passwordService.EncryptPassword(registerUserRequestDto.Password, userSalt);
         user.Salt = userSalt;
 
-        await _sankiContext.Users.AddAsync(user);
-        await _sankiContext.SaveChangesAsync();
+        await _userRepository.RegisterUserAsync(user);
 
         return new RegisterUserResponseDTO
         {
@@ -49,7 +47,7 @@ public class UserService : IUserService
 
     private async Task<bool> IsUserAlreadyRegisterAsync(RegisterUserRequestDTO registerUserRequestDto)
     {
-        var user = await _sankiContext.Users.FirstOrDefaultAsync(user => user.Email == registerUserRequestDto.Email);
+        var user = await _userRepository.GetUserByEmailAsync(registerUserRequestDto.Email);
 
         return user is not null;
     }

@@ -1,9 +1,8 @@
 using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Sanki.Entities;
 using Sanki.Entities.Enums;
-using Sanki.Persistence;
+using Sanki.Repositories.Contracts;
 using Sanki.Services.Contracts;
 using Sanki.Services.Contracts.DTO;
 
@@ -12,12 +11,14 @@ namespace Sanki.Services;
 public class ReviewService : IReviewService
 {
     private readonly IJwtService _jwtService;
-    private readonly SankiContext _sankiContext;
+    private readonly IFlashcardRepository _flashcardRepository;
+    private readonly IReviewRepository _reviewRepository;
 
-    public ReviewService(IJwtService jwtService, SankiContext sankiContext)
+    public ReviewService(IJwtService jwtService, IFlashcardRepository flashcardRepository, IReviewRepository reviewRepository)
     {
         _jwtService = jwtService;
-        _sankiContext = sankiContext;
+        _flashcardRepository = flashcardRepository;
+        _reviewRepository = reviewRepository;
     }
 
     public async Task SaveNextReviewDateAsync(SaveReviewDateRequestDTO saveReviewDateRequestDto, string token)
@@ -29,11 +30,8 @@ public class ReviewService : IReviewService
             throw new UnauthorizedAccessException("User is not authorized.");
         }
 
-        var flashcard = await _sankiContext.Flashcards
-            .FirstOrDefaultAsync(flashcard =>
-                flashcard.Id == saveReviewDateRequestDto.FlashcardId && flashcard.UserId == userId);
-
-        if (flashcard is null) throw new UnauthorizedAccessException("User is not authorized to access resource.");
+        var flashcard = await _flashcardRepository.GetFlashcardByIdAndUserIdAsync(saveReviewDateRequestDto.FlashcardId, userId)
+            ?? throw new UnauthorizedAccessException("User is not authorized to access resource.");
 
         var flashcardNote = saveReviewDateRequestDto.FlashcardNote;
         var reviewDate = saveReviewDateRequestDto.ReviewDate ?? DateTime.Today;
@@ -41,44 +39,40 @@ public class ReviewService : IReviewService
         switch (flashcardNote)
         {
             case < 3:
-                flashcard.Status = StatusOptions.Study.ToString();
+                await _flashcardRepository.UpdateFlashcardStatusAsync(flashcard, StatusOptions.Pending);
 
-                await _sankiContext.SaveChangesAsync();
                 break;
             case <= 5:
-            {
-                var ef = 2.5 + (0.1 - (5 - flashcardNote) * (0.08 + (5 - flashcardNote) * 0.02));
-                var nextReviewDate = DateTime.Today.AddDays(reviewDate.Day * ef);
-                var currentReview =
-                    await _sankiContext.Reviews.FirstOrDefaultAsync(review => review.FlashcardId == flashcard.Id);
-
-                if (currentReview is null)
                 {
-                    await _sankiContext.Reviews.AddAsync(new Review
+                    var ef = 2.5 + (0.1 - (5 - flashcardNote) * (0.08 + (5 - flashcardNote) * 0.02));
+                    var nextReviewDate = DateTime.Today.AddDays(reviewDate.Day * ef);
+                    var currentReview = await _reviewRepository.GetReviewByFlashcardId(flashcard.Id);
+
+                    if (currentReview is null)
                     {
-                        ReviewDate = nextReviewDate,
-                        FlashcardId = flashcard.Id
-                    });
+                        var review = new Review
+                        {
+                            ReviewDate = nextReviewDate,
+                            FlashcardId = flashcard.Id
+                        };
+
+                        await _reviewRepository.AddReview(review);
+                    }
+                    else
+                    {
+                        await _reviewRepository.UpdateReviewDate(currentReview, nextReviewDate);
+                    }
+
+                    await _flashcardRepository.UpdateFlashcardStatusAsync(flashcard, StatusOptions.Review);
+
+                    break;
                 }
-                else
-                {
-                    currentReview.ReviewDate = nextReviewDate;
-                }
-
-                flashcard.Status = StatusOptions.Review.ToString();
-
-                await _sankiContext.SaveChangesAsync();
-
-                break;
-            }
         }
     }
 
     private ClaimsPrincipal GetPrincipal(string token)
     {
-        var principal = _jwtService.GetPrincipalFromJwt(token);
-
-        if (principal is null) throw new SecurityTokenException("Invalid token");
+        var principal = _jwtService.GetPrincipalFromJwt(token) ?? throw new SecurityTokenException("Invalid token");
 
         return principal;
     }
