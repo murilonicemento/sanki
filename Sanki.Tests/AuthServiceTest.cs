@@ -1,7 +1,9 @@
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Moq;
 using Sanki.Persistence;
+using Sanki.Repositories.Contracts;
 using Sanki.Services;
 using Sanki.Services.Contracts.DTO;
 
@@ -10,21 +12,17 @@ namespace Sanki.Tests;
 public class AuthServiceTest
 {
     private readonly Fixture _fixture;
-    private readonly SankiContext _sankiContext;
     private readonly PasswordService _passwordService;
     private readonly UserService _userService;
     private readonly AuthService _authService;
+    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly IUserRepository _userRepository;
+    private readonly Mock<IAuthRepository> _authRepositoryMock;
+    private readonly IAuthRepository _authRepository;
 
     public AuthServiceTest()
     {
         _fixture = new Fixture();
-
-        var options = new DbContextOptionsBuilder<SankiContext>()
-            .UseInMemoryDatabase(databaseName: "SankiTestDatabase")
-            .Options;
-        _sankiContext = new SankiContext(options);
-
-        _sankiContext.Database.EnsureCreated();
         _passwordService = new PasswordService();
 
         var initialData = new Dictionary<string, string>
@@ -37,9 +35,13 @@ public class AuthServiceTest
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(initialData).Build();
         var jwtService = new JwtService(configuration);
 
-        _userService = new UserService(_sankiContext, _passwordService);
+        _userRepositoryMock = new Mock<IUserRepository>();
+        _userRepository = _userRepositoryMock.Object;
+        _authRepositoryMock = new Mock<IAuthRepository>();
+        _authRepository = _authRepositoryMock.Object;
 
-        _authService = new AuthService(_sankiContext, _passwordService, jwtService);
+        _userService = new UserService(_passwordService, _userRepository);
+        _authService = new AuthService(_passwordService, jwtService, _userRepository, _authRepository);
     }
 
     [Fact]
@@ -86,7 +88,7 @@ public class AuthServiceTest
 
         await _authService.LoginAsync(loginUserRequestDto);
 
-        var user = await _sankiContext.Users.FirstOrDefaultAsync(user => user.Email == loginUserRequestDto.Email);
+        var user = await _userRepository.GetUserByEmailAsync(loginUserRequestDto.Email);
         var password = _passwordService.EncryptPassword(registerUserRequestDto.Password, user.Salt);
 
         Assert.True(user.Password == password);

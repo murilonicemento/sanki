@@ -1,6 +1,8 @@
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Sanki.Persistence;
+using Sanki.Repositories.Contracts;
 using Sanki.Services;
 using Sanki.Services.Contracts.DTO;
 
@@ -10,21 +12,19 @@ public class UserServiceTest
 {
     private readonly Fixture _fixture;
     private readonly UserService _userService;
-    private readonly SankiContext _sankiContext;
+    private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly IUserRepository _userRepository;
 
     public UserServiceTest()
     {
         _fixture = new Fixture();
 
-        var options = new DbContextOptionsBuilder<SankiContext>()
-            .UseInMemoryDatabase(databaseName: "SankiTestDatabase")
-            .Options;
-        _sankiContext = new SankiContext(options);
-
-        _sankiContext.Database.EnsureCreated();
-
         var passwordService = new PasswordService();
-        _userService = new UserService(_sankiContext, passwordService);
+        
+        _userRepositoryMock = new Mock<IUserRepository>();
+        _userRepository = _userRepositoryMock.Object;
+        
+        _userService = new UserService(passwordService, _userRepository);
     }
 
     #region Register
@@ -62,8 +62,7 @@ public class UserServiceTest
     {
         var registerUserDto = _fixture.Build<RegisterUserRequestDTO>().Create();
         var authResponseDtoResult = await _userService.RegisterAsync(registerUserDto);
-        var authResponseDtoExpected =
-            await _sankiContext.Users.FirstOrDefaultAsync(user => user.Email == authResponseDtoResult.Email);
+        var authResponseDtoExpected = await _userRepository.GetUserByEmailAsync(authResponseDtoResult.Email);
 
         Assert.NotNull(authResponseDtoResult);
         Assert.Equal(authResponseDtoExpected, authResponseDtoExpected);

@@ -2,8 +2,10 @@ using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Moq;
 using Sanki.Entities;
 using Sanki.Persistence;
+using Sanki.Repositories.Contracts;
 using Sanki.Services;
 using Sanki.Services.Contracts.DTO;
 
@@ -12,9 +14,10 @@ namespace Sanki.Tests;
 public class ResumeServiceTest
 {
     private readonly Fixture _fixture;
-    private readonly SankiContext _sankiContext;
     private readonly ResumeService _resumeService;
     private readonly JwtService _jwtService;
+    private readonly Mock<IResumeRepository> _resumeRepositoryMock;
+    private readonly IResumeRepository _resumeRepository;
 
     public ResumeServiceTest()
     {
@@ -30,14 +33,10 @@ public class ResumeServiceTest
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(initialData).Build();
         _jwtService = new JwtService(configuration);
 
-        var options = new DbContextOptionsBuilder<SankiContext>()
-            .UseInMemoryDatabase(databaseName: "SankiTestDatabase")
-            .Options;
-        _sankiContext = new SankiContext(options);
-
-        _sankiContext.Database.EnsureCreated();
-
-        _resumeService = new ResumeService(_jwtService, _sankiContext);
+        _resumeRepositoryMock = new Mock<IResumeRepository>();
+        _resumeRepository = _resumeRepositoryMock.Object;
+        
+        _resumeService = new ResumeService(_jwtService, _resumeRepository);
     }
 
     #region GetResumesByUserAsync
@@ -203,7 +202,7 @@ public class ResumeServiceTest
         var updateResumeRequestDto = _fixture.Build<UpdateResumeRequestDTO>().Create();
         var updateResumeExpected = await _resumeService
             .UpdateResumeAsync(updateResumeRequestDto, loginUserResponseDto.Token);
-        var resume = await _sankiContext.Resumes.FirstOrDefaultAsync(resume => resume.Id == updateResumeExpected.Id);
+        var resume = await _resumeRepository.GetResumeByIdAndUserIdAsync(updateResumeExpected.Id, user.Id);
         var updateResumeResult = new ResumeResponseDTO
         {
             Id = resume.Id,
