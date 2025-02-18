@@ -1,8 +1,6 @@
 using AutoFixture;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Moq;
-using Sanki.Persistence;
 using Sanki.Repositories.Contracts;
 using Sanki.Services;
 using Sanki.Services.Contracts.DTO;
