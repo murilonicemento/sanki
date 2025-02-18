@@ -32,7 +32,7 @@ public class FlashcardService : IFlashcardService
 
     public async Task<List<FlashcardResponseDTO>> GetFlashcardsByUserAsync(string token)
     {
-        var principal = GetPrincipal(token);
+        var principal = _jwtService.GetPrincipalFromJwt(token) ?? throw new SecurityTokenException("Invalid token");
 
         if (!Guid.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var id))
         {
@@ -54,7 +54,7 @@ public class FlashcardService : IFlashcardService
 
     public async Task GenerateFlashcardsAsync(Guid resumeId, string token)
     {
-        var principal = GetPrincipal(token);
+        var principal = _jwtService.GetPrincipalFromJwt(token) ?? throw new SecurityTokenException("Invalid token");
 
         if (!Guid.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
         {
@@ -108,12 +108,5 @@ public class FlashcardService : IFlashcardService
         }).ToList();
 
         await _flashcardRepository.AddFlashcardListAsync(flashcardsList);
-    }
-
-    private ClaimsPrincipal GetPrincipal(string token)
-    {
-        var principal = _jwtService.GetPrincipalFromJwt(token) ?? throw new SecurityTokenException("Invalid token");
-
-        return principal;
     }
 }

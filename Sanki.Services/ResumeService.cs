@@ -20,8 +20,9 @@ public class ResumeService : IResumeService
 
     public async Task<List<ResumeResponseDTO>> GetResumesByUserAsync(string token)
     {
-        var principal = GetPrincipal(token);
-        var email = GetEmail(principal);
+        var principal = _jwtService.GetPrincipalFromJwt(token) ?? throw new SecurityTokenException("Invalid token");
+        var email = principal.FindFirstValue(ClaimTypes.Email) ??
+                    throw new UnauthorizedAccessException("User is not authorized.");
         var resumes = await _resumeRepository.GetResumesByUserEmailAsync(email);
 
         return resumes
@@ -31,7 +32,7 @@ public class ResumeService : IResumeService
 
     public async Task AddResumeAsync(AddResumeRequestDTO addResumeRequestDto, string token)
     {
-        var principal = GetPrincipal(token);
+        var principal = _jwtService.GetPrincipalFromJwt(token) ?? throw new SecurityTokenException("Invalid token");
 
         if (!Guid.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var id))
         {
@@ -50,10 +51,11 @@ public class ResumeService : IResumeService
 
     public async Task<ResumeResponseDTO> UpdateResumeAsync(UpdateResumeRequestDTO updateResumeRequestDto, string token)
     {
-        var principal = GetPrincipal(token);
-        var email = GetEmail(principal);
+        var principal = _jwtService.GetPrincipalFromJwt(token) ?? throw new SecurityTokenException("Invalid token");
+        var email = principal.FindFirstValue(ClaimTypes.Email) ??
+                    throw new UnauthorizedAccessException("User is not authorized.");
         var resume = await _resumeRepository.GetResumeByIdAndUserEmailAsync(updateResumeRequestDto.Id, email)
-            ?? throw new KeyNotFoundException("Resume not found for current user.");
+                     ?? throw new KeyNotFoundException("Resume not found for current user.");
 
         await _resumeRepository.UpdateResumeAsync(resume, updateResumeRequestDto.Title, updateResumeRequestDto.Content);
 
@@ -67,30 +69,12 @@ public class ResumeService : IResumeService
 
     public async Task DeleteResumeAsync(Guid id, string token)
     {
-        var principal = GetPrincipal(token);
-        var email = GetEmail(principal);
-
+        var principal = _jwtService.GetPrincipalFromJwt(token) ?? throw new SecurityTokenException("Invalid token");
+        var email = principal.FindFirstValue(ClaimTypes.Email) ??
+                    throw new UnauthorizedAccessException("User is not authorized.");
         var resume = await _resumeRepository.GetResumeByIdAndUserEmailAsync(id, email)
-            ?? throw new KeyNotFoundException("Resume already deleted.");
+                     ?? throw new KeyNotFoundException("Resume already deleted.");
 
         await _resumeRepository.DeleteResumeAsync(resume);
-    }
-
-    private ClaimsPrincipal GetPrincipal(string token)
-    {
-        var principal = _jwtService.GetPrincipalFromJwt(token);
-
-        if (principal is null) throw new SecurityTokenException("Invalid token");
-
-        return principal;
-    }
-
-    private static string GetEmail(ClaimsPrincipal principal)
-    {
-        var email = principal.FindFirstValue(ClaimTypes.Email);
-
-        if (email is null) throw new UnauthorizedAccessException("User is not authorized.");
-
-        return email;
     }
 }

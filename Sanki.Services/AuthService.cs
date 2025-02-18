@@ -13,7 +13,8 @@ public class AuthService : IAuthService
     private readonly IUserRepository _userRepository;
     private readonly IAuthRepository _authRepository;
 
-    public AuthService(IPasswordService passwordService, IJwtService jwtService, IUserRepository userRepository, IAuthRepository authRepository)
+    public AuthService(IPasswordService passwordService, IJwtService jwtService, IUserRepository userRepository,
+        IAuthRepository authRepository)
     {
         _passwordService = passwordService;
         _jwtService = jwtService;
@@ -24,13 +25,14 @@ public class AuthService : IAuthService
     public async Task<LoginUserResponseDTO?> LoginAsync(LoginUserRequestDTO loginUserRequestDto)
     {
         var user = await _userRepository.GetUserByEmailAsync(loginUserRequestDto.Email)
-            ?? throw new InvalidOperationException("User is not registered.");
+                   ?? throw new InvalidOperationException("User is not registered.");
         var encryptedPassword = _passwordService.EncryptPassword(loginUserRequestDto.Password, user.Salt);
         var loggedUser = await _authRepository.GetLoggedUserAsync(loginUserRequestDto.Email, encryptedPassword)
-            ?? throw new UnauthorizedAccessException("Password is incorrect.");
+                         ?? throw new UnauthorizedAccessException("Password is incorrect.");
         var loginUserResponseDto = _jwtService.GenerateJwt(loggedUser);
 
-        await _authRepository.UpdateRefreshTokenAsync(loggedUser, loginUserResponseDto.RefreshToken, loginUserResponseDto.RefreshTokenExpiration);
+        await _authRepository.UpdateRefreshTokenAsync(loggedUser, loginUserResponseDto.RefreshToken,
+            loginUserResponseDto.RefreshTokenExpiration);
 
         return loginUserResponseDto;
     }
@@ -38,8 +40,9 @@ public class AuthService : IAuthService
     public async Task<LoginUserResponseDTO> GenerateNewAccessTokenAsync(TokenRequestDTO tokenRequestDto)
     {
         var principal = _jwtService.GetPrincipalFromJwt(tokenRequestDto.Token)
-            ?? throw new SecurityTokenException("Invalid json web token.");
-        var email = principal.FindFirstValue(ClaimTypes.Email) ?? throw new UnauthorizedAccessException("User is not authorized.");
+                        ?? throw new SecurityTokenException("Invalid json web token.");
+        var email = principal.FindFirstValue(ClaimTypes.Email) ??
+                    throw new UnauthorizedAccessException("User is not authorized.");
         var user = await _userRepository.GetUserByEmailAsync(email);
 
         if (user is null || user.RefreshToken != tokenRequestDto.RefreshToken ||
@@ -50,7 +53,8 @@ public class AuthService : IAuthService
 
         var loginUserResponseDto = _jwtService.GenerateJwt(user);
 
-        await _authRepository.UpdateRefreshTokenAsync(user, loginUserResponseDto.RefreshToken, loginUserResponseDto.RefreshTokenExpiration);
+        await _authRepository.UpdateRefreshTokenAsync(user, loginUserResponseDto.RefreshToken,
+            loginUserResponseDto.RefreshTokenExpiration);
 
         return loginUserResponseDto;
     }
