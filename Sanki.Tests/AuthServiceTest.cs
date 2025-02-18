@@ -1,6 +1,7 @@
 using AutoFixture;
 using Microsoft.Extensions.Configuration;
 using Moq;
+using Sanki.Entities;
 using Sanki.Repositories.Contracts;
 using Sanki.Services;
 using Sanki.Services.Contracts.DTO;
@@ -75,6 +76,16 @@ public class AuthServiceTest
     public async Task LoginAsync_ShouldBeValid()
     {
         var registerUserRequestDto = _fixture.Build<RegisterUserRequestDTO>().Create();
+        var user = _fixture.Build<User>()
+            .With(user => user.Resumes, null as List<Resume>)
+            .Create();
+
+        _userRepositoryMock
+            .Setup(temp => temp.GetUserByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync(user);
+        _userRepositoryMock
+            .Setup(temp => temp.RegisterUserAsync(It.IsAny<User>()))
+            .Returns(Task.CompletedTask);
 
         await _userService.RegisterAsync(registerUserRequestDto);
 
@@ -86,9 +97,9 @@ public class AuthServiceTest
 
         await _authService.LoginAsync(loginUserRequestDto);
 
-        var user = await _userRepository.GetUserByEmailAsync(loginUserRequestDto.Email);
-        var password = _passwordService.EncryptPassword(registerUserRequestDto.Password, user.Salt);
+        var registeredUser = await _userRepository.GetUserByEmailAsync(loginUserRequestDto.Email);
+        var password = _passwordService.EncryptPassword(registerUserRequestDto.Password, registeredUser.Salt);
 
-        Assert.True(user.Password == password);
+        Assert.True(registeredUser.Password == password);
     }
 }
