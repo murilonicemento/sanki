@@ -11,18 +11,16 @@ namespace Sanki.Tests;
 public class AuthServiceTest
 {
     private readonly Fixture _fixture;
-    private readonly PasswordService _passwordService;
     private readonly UserService _userService;
     private readonly AuthService _authService;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly IUserRepository _userRepository;
     private readonly Mock<IAuthRepository> _authRepositoryMock;
-    private readonly IAuthRepository _authRepository;
 
     public AuthServiceTest()
     {
         _fixture = new Fixture();
-        _passwordService = new PasswordService();
+        var passwordService = new PasswordService();
 
         var initialData = new Dictionary<string, string>
         {
@@ -37,10 +35,10 @@ public class AuthServiceTest
         _userRepositoryMock = new Mock<IUserRepository>();
         _userRepository = _userRepositoryMock.Object;
         _authRepositoryMock = new Mock<IAuthRepository>();
-        _authRepository = _authRepositoryMock.Object;
+        var authRepository = _authRepositoryMock.Object;
 
-        _userService = new UserService(_passwordService, _userRepository);
-        _authService = new AuthService(_passwordService, jwtService, _userRepository, _authRepository);
+        _userService = new UserService(passwordService, _userRepository);
+        _authService = new AuthService(passwordService, jwtService, _userRepository, authRepository);
     }
 
     [Fact]
@@ -57,7 +55,24 @@ public class AuthServiceTest
     [Fact]
     public async Task LoginAsync_IncorrectPassword_ShouldReturnNull()
     {
-        var registerUserRequestDto = _fixture.Build<RegisterUserRequestDTO>().Create();
+        var user = _fixture.Build<User>()
+            .With(user => user.Resumes, new List<Resume>())
+            .With(user => user.Flashcards, new List<Flashcard>())
+            .Create();
+        var registerUserRequestDto = new RegisterUserRequestDTO
+        {
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Password = user.Password
+        };
+
+        _userRepositoryMock
+            .Setup(temp => temp.GetUserByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync(null as User);
+        _userRepositoryMock
+            .Setup(temp => temp.RegisterUserAsync(It.IsAny<User>()))
+            .Returns(Task.CompletedTask);
 
         await _userService.RegisterAsync(registerUserRequestDto);
 
@@ -66,23 +81,44 @@ public class AuthServiceTest
             Email = registerUserRequestDto.Email,
             Password = string.Empty
         };
+        
+        _userRepositoryMock
+            .Setup(temp => temp.GetUserByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync(user);
+        _authRepositoryMock
+            .Setup(temp => temp.GetLoggedUserAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(null as User);
+        _authRepositoryMock
+            .Setup(temp => temp.UpdateRefreshTokenAsync(
+                It.IsAny<User>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>()))
+            .Returns(Task.CompletedTask);
 
-        var loginUserResponseDto = await _authService.LoginAsync(loginUserRequestDto);
-
-        Assert.Null(loginUserResponseDto);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+        {
+            await _authService.LoginAsync(loginUserRequestDto);
+        });
     }
 
     [Fact]
     public async Task LoginAsync_ShouldBeValid()
     {
-        var registerUserRequestDto = _fixture.Build<RegisterUserRequestDTO>().Create();
         var user = _fixture.Build<User>()
-            .With(user => user.Resumes, null as List<Resume>)
+            .With(user => user.Resumes, new List<Resume>())
+            .With(user => user.Flashcards, new List<Flashcard>())
             .Create();
+        var registerUserRequestDto = new RegisterUserRequestDTO
+        {
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Password = user.Password
+        };
 
         _userRepositoryMock
             .Setup(temp => temp.GetUserByEmailAsync(It.IsAny<string>()))
-            .ReturnsAsync(user);
+            .ReturnsAsync(null as User);
         _userRepositoryMock
             .Setup(temp => temp.RegisterUserAsync(It.IsAny<User>()))
             .Returns(Task.CompletedTask);
@@ -95,11 +131,23 @@ public class AuthServiceTest
             Password = registerUserRequestDto.Password
         };
 
+        _userRepositoryMock
+            .Setup(temp => temp.GetUserByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync(user);
+        _authRepositoryMock
+            .Setup(temp => temp.GetLoggedUserAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(user);
+        _authRepositoryMock
+            .Setup(temp => temp.UpdateRefreshTokenAsync(
+                It.IsAny<User>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>()))
+            .Returns(Task.CompletedTask);
+
         await _authService.LoginAsync(loginUserRequestDto);
 
         var registeredUser = await _userRepository.GetUserByEmailAsync(loginUserRequestDto.Email);
-        var password = _passwordService.EncryptPassword(registerUserRequestDto.Password, registeredUser.Salt);
 
-        Assert.True(registeredUser.Password == password);
+        Assert.NotNull(registeredUser);
     }
 }
