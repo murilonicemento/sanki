@@ -1,6 +1,7 @@
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Sanki.Entities;
 using Sanki.Persistence;
 using Sanki.Repositories.Contracts;
 using Sanki.Services;
@@ -20,10 +21,10 @@ public class UserServiceTest
         _fixture = new Fixture();
 
         var passwordService = new PasswordService();
-        
+
         _userRepositoryMock = new Mock<IUserRepository>();
         _userRepository = _userRepositoryMock.Object;
-        
+
         _userService = new UserService(passwordService, _userRepository);
     }
 
@@ -32,9 +33,21 @@ public class UserServiceTest
     [Fact]
     public async Task Register_PersonAlreadyExist_ShouldBeInvalidOperationException()
     {
-        var registerUserDto = _fixture.Build<RegisterUserRequestDTO>().Create();
+        var user = _fixture.Build<User>()
+            .With(user => user.Flashcards, new List<Flashcard>())
+            .With(user => user.Resumes, new List<Resume>())
+            .Create();
+        var registerUserDto = new RegisterUserRequestDTO
+        {
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Password = user.Password
+        };
 
-        await _userService.RegisterAsync(registerUserDto);
+        _userRepositoryMock
+            .Setup(temp => temp.GetUserByEmailAsync(It.IsAny<string>()))
+            .ReturnsAsync(user);
 
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
