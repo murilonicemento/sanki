@@ -1,8 +1,29 @@
-version: '3.8'
-
+version: "3.9"
 services:
-  db:
-    image: postgres:13
+  api:
+    build: ./Sanki.Api
+    container_name: sanki-api
+    depends_on:
+      - postgresdb
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__DefaultConnection=${ConnectionStrings__DefaultConnection}
+      - ConnectionStrings__MongoDB=${ConnectionStrings__MongoDB}
+      - Jwt__Issuer=${Jwt__Issuer}
+      - Jwt__Audience=${Jwt__Audience}
+      - Jwt__EXPIRATION_MINUTES=${Jwt__EXPIRATION_MINUTES}
+      - Jwt__Key=${Jwt__Key}
+      - RefreshToken__EXPIRATION_MINUTES=${RefreshToken__EXPIRATION_MINUTES}
+      - Gemini__ApiKey=${Gemini__ApiKey}
+      - Gemini__Url=${Gemini__Url}
+    ports:
+      - "8080:8080"
+      - "8081:8181"
+    networks:
+      - sanki-network
+    restart: unless-stopped
+  postgresdb:
+    image: postgres:16
     container_name: postgres-container
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -13,12 +34,11 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
-      - api-network
-
+      - sanki-network
+    restart: unless-stopped
 volumes:
   postgres-data:
     driver: local
-
 networks:
-  api-network:
+  sanki-network:
     driver: bridge
